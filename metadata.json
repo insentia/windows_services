@@ -1,13 +1,13 @@
 {
   "name": "jriviere-windows_services",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "jriviere",
-  "summary": "This module allows you to mount and dismount ISOs on windows server.",
+  "summary": "This module allows you to manage windows services.",
   "license": "Apache License, Version 2.0",
   "source": "https://github.com/insentia/windows_services",
   "project_page": "https://github.com/insentia/windows_services",
   "issues_url": "https://github.com/insentia/windows_services/issues",
-  "description": "This module allows you to mount and dismount ISOs on windows server. Should work on Windows 8.1, Windows Server 2012 R2",
+  "description": "This module allows you to manage windows services.",
   "operatingsystem_support": [
     {
       "operatingsystem": "Windows"
