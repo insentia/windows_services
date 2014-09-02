@@ -25,6 +25,7 @@ define windows_services::credentials(
   $username    = '',
   $password    = '',
   $servicename = '',
+  $delayed     = false,
 ){
   if(empty($username)){
     fail('Username is mandatory')
@@ -35,6 +36,7 @@ define windows_services::credentials(
   if(empty($servicename)){
     fail('servicename is mandatory')
   }
+  validate_bool($delayed)
 
   exec{"Change credentials - $servicename":
     command  => "\$username = '${username}';\$password = '${password}';\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";\$StopStatus = \$svcD.StopService();\$ChangeStatus = \$svcD.change(\$null,\$null,\$null,\$null,\$null,\$null,\$username,\$password,\$null,\$null,\$null);\$startstatus = \$svcD.StartService();",
@@ -42,4 +44,18 @@ define windows_services::credentials(
     timeout  => 300,
     onlyif   => "\$username = '${username}';\$password = '${password}';\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";if(\$svcD.GetPropertyValue('startname') -like '${username}'){exit 1}",
   }
+
+  if($delayed){
+    $value = '1' 
+  }else{
+    $value = '0'
+  }
+
+  exec{"Set Start_Delayed - $servicename":
+    command  => "New-ItemProperty -Path \"HKLM:\\System\\CurrentControlSet\\Services\\${servicename}\" -Name 'DelayedAutoStart' -Value '${value}' -PropertyType 'DWORD' -Force;",
+    provider => "powershell",
+    timeout  => 300,
+    onlyif   => "if((test-path \"HKLM:\\System\\CurrentControlSet\\Services\\${servicename}\\\") -eq \$true){if((Get-ItemProperty -Path \"HKLM:\\System\\CurrentControlSet\\Services\\${servicename}\" -ErrorAction SilentlyContinue).DelayedAutoStart -eq '${value}'){exit 1;}else{exit 0;}}else{exit 1;}",
+  }
+  Exec["Change credentials - $servicename"] -> Exec["Set Start_Delayed - $servicename"]
 }
