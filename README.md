@@ -18,6 +18,12 @@ Module allow us to change the username and password for a service.
 
 Module allow us for now to change the username and password for a service.
 
+Delayed resource can't be applied without a server restart.
+
+##Last Fix/Update
+V 0.0.3 :
+ - Delayed resource is also integrated in credentials resource. 
+
 ## Setup
 
 ### Setup Requirements
@@ -29,19 +35,38 @@ Depends on the following modules:
 
 ## Usage
 
-Resource: windows_services
+Resource: windows_services::delayedstart
+```
+	windows_services::delayedstart{'puppetdelayed':
+	  servicename => "puppet",
+	}
+```
+Parameters
+```
+	$delayed   # Default True for put delayed start on service, set to false to let to automatic start
+```
+
+Resource: windows_services:credentials
 ```
 	windows_services::credentials{'puppet':
 	  username    => "DOMAIN\\User",
 	  password    => "P@ssw0rd",
 	  servicename => "puppet",
+	  delayed     => true,
 	}
+```
+
+Parameters
+```
+	$delayed   # Default False, set to true to set delayed start on servicename. (Restart needed)
 ```
 
 ## Limitations
 
 Works only with windows.
 Tested on Windows Server 2012 R2
+
+The delayed resource is only applied when server reboot.
 
 License
 -------
