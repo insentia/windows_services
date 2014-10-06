@@ -26,6 +26,7 @@ define windows_services::credentials(
   $password    = '',
   $servicename = '',
   $delayed     = false,
+  $carbondll   = "C:\\Carbon.dll",
 ){
   if(empty($username)){
     fail('Username is mandatory')
@@ -37,9 +38,12 @@ define windows_services::credentials(
     fail('servicename is mandatory')
   }
   validate_bool($delayed)
-
+  file{"${carbondll}":
+    source => "puppet:///modules/windows_services/Carbon.dll",
+    source_permissions => ignore,
+  }
   exec{"Change credentials - $servicename":
-    command  => "\$username = '${username}';\$password = '${password}';\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";\$StopStatus = \$svcD.StopService();\$ChangeStatus = \$svcD.change(\$null,\$null,\$null,\$null,\$null,\$null,\$username,\$password,\$null,\$null,\$null);\$startstatus = \$svcD.StartService();",
+    command  => "\$username = '${username}';\$password = '${password}';\$privilege = \"SeServiceLogonRight\";[Reflection.Assembly]::LoadFile(\"${carbondll}\");[Carbon.LSA]::GrantPrivileges(\$username, \$privilege);\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";\$StopStatus = \$svcD.StopService();\$ChangeStatus = \$svcD.change(\$null,\$null,\$null,\$null,\$null,\$null,\$username,\$password,\$null,\$null,\$null);\$startstatus = \$svcD.StartService();",
     provider => "powershell",
     timeout  => 300,
     onlyif   => "\$username = '${username}';\$password = '${password}';\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";if(\$svcD.GetPropertyValue('startname') -like '${username}'){exit 1}",
@@ -57,5 +61,5 @@ define windows_services::credentials(
     timeout  => 300,
     onlyif   => "if((test-path \"HKLM:\\System\\CurrentControlSet\\Services\\${servicename}\\\") -eq \$true){if((Get-ItemProperty -Path \"HKLM:\\System\\CurrentControlSet\\Services\\${servicename}\" -ErrorAction SilentlyContinue).DelayedAutoStart -eq '${value}'){exit 1;}else{exit 0;}}else{exit 1;}",
   }
-  Exec["Change credentials - $servicename"] -> Exec["Set Start_Delayed - $servicename"]
+  File["${carbondll}"] -> Exec["Change credentials - $servicename"] -> Exec["Set Start_Delayed - $servicename"]
 }

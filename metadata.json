@@ -1,6 +1,6 @@
 {
   "name": "jriviere-windows_services",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "jriviere",
   "summary": "This module allows you to manage windows services.",
   "license": "Apache License, Version 2.0",

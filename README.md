@@ -21,8 +21,8 @@ Module allow us for now to change the username and password for a service.
 Delayed resource can't be applied without a server restart.
 
 ##Last Fix/Update
-V 0.0.3 :
- - Delayed resource is also integrated in credentials resource. 
+V 0.0.4 :
+ - Add Carbon.dll assembly. Permit to give privilege : SeServiceLogonRight to the specify account (useful for managing server without DC features)
 
 ## Setup
 
