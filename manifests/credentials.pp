@@ -38,10 +38,7 @@ define windows_services::credentials(
     fail('servicename is mandatory')
   }
   validate_bool($delayed)
-  file{"${carbondll}":
-    source => "puppet:///modules/windows_services/Carbon.dll",
-    source_permissions => ignore,
-  }
+  require windows_services::carbon
   exec{"Change credentials - $servicename":
     command  => "\$username = '${username}';\$password = '${password}';\$privilege = \"SeServiceLogonRight\";[Reflection.Assembly]::LoadFile(\"${carbondll}\");[Carbon.LSA]::GrantPrivileges(\$username, \$privilege);\$serverName = \$env:COMPUTERNAME;\$service = '${servicename}';\$svcD=gwmi win32_service -computername \$serverName -filter \"name='\$service'\";\$StopStatus = \$svcD.StopService();\$ChangeStatus = \$svcD.change(\$null,\$null,\$null,\$null,\$null,\$null,\$username,\$password,\$null,\$null,\$null);\$startstatus = \$svcD.StartService();",
     provider => "powershell",
